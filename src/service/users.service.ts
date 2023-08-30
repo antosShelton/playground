@@ -38,9 +38,5 @@ export const updateUser = (user: User) => {
     userStore[user.id] = user;
 }
 
-export const deleteUserById = (userId: string) => {
-    if (userStore[userId]) {
-        delete userStore[userId];
-    }
-}
+
 

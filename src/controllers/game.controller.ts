@@ -1,11 +1,13 @@
-import {HttpStatusCode} from 'axios';
+
 import {Request, Response} from 'express';
 import {Action} from '../framework/type';
 import {
     getUserById,
     updateUser
 } from '../service/users.service';
-import {getTicTacToe, getUserList, makeMoveInGame, startTicTacToeGame} from "../service/game.service";
+  import {checkGuessedNumber, generateRandomNumberArray} from "../service/game.service";
+
+
 
 const startGame: Action = {
     method: 'post',
@@ -13,85 +15,84 @@ const startGame: Action = {
     action: (request: Request, response: Response) => {
         let userId = request.header('user_id');
 
-        if (userId && !getUserById(userId.toString())) {
-            return response.status(401).send({
-                error: `User ` + getUserById(userId.toString()).username + ` doesn't exists`,
-            });
-        }
-        const oponentId = request.body.oponentId;
-        if (!getUserById(oponentId)) {
-            return response.status(HttpStatusCode.BadRequest).send({
-                error: `Oponent doesn't exists`,
-            });
+        if (userId) {
+            const user = !getUserById(userId.toString());
+            if (user) {
+                response.json("user doesnt exist");
+            }
         }
 
-        if (userId && (getUserById(userId).isPlaying || getUserById(oponentId).isPlaying)) {
-            return response.status(HttpStatusCode.BadRequest).send({
-                error: `One of the players is in game`,
-            });
+
+        if (userId) {
+            const user = getUserById(userId);
+            if (user.isPlaying) {
+                response.json("user is already in game");
+            }
         }
+
         if (userId) {
             const user = getUserById(userId);
             user.isPlaying = true;
             updateUser(user);
 
-            const oponent = getUserById(oponentId);
-            oponent.isPlaying = true;
-            updateUser(oponent);
-
-            startTicTacToeGame(userId, oponentId)
-            return response.status(HttpStatusCode.Ok).send();
-        }
-    }
-
-}
-
-const makeMove: Action = {
-    method: "patch",
-    path: "/game",
-    action: (request: Request, response: Response) => {
-        let userId = request.header('user_id')
-        if (userId && !getUserById(userId.toString())) {
-            return response.status(401).send({
-                error: `User ` + getUserById(userId.toString()).username + ` doesn't exists`,
-            });
-        }
-        const x = request.body.x;
-        const y = request.body.y;
-        if (userId) {
-            const res = makeMoveInGame(userId, x, y);
-            if (res == null) {
-                return response.status(400).send({
-                    error: `You are not in any game or it's not your turn or you are trying to make move in wrong place`,
-                });
-            }
+            generateRandomNumberArray();
+            response.json("game has begun")
 
         }
-        return response.status(HttpStatusCode.Ok).send();
     }
 }
+  let attempts = 1;
+  const guessNumber: Action = {
+      path: '/game/:number',
+      method: 'post',
+      action: (request: Request, response: Response) => {
+          let userId = request.header("user_id");
+
+          if (userId) {
+              const user = !getUserById(userId.toString());
+              if (user) {
+                  response.json("user doesn't exist!");
+              }
+          }
+
+          if (userId) {
+              const user = getUserById(userId);
+              if (!user.isPlaying) {
+                  response.json("the game has not started yet");
+              }
+          }
+
+          if (userId && attempts >= 20) {
+              const user = getUserById(userId);
+              user.isPlaying = false;
+              updateUser(user);
+              response.json("you lost");
+              attempts = 1;
+          } else {
+              const guessedNumber = request.params.number;
+
+              let attempts = 1;
+
+              if (userId && (checkGuessedNumber(guessedNumber) == true)) {
+                  const user = getUserById(userId);
+                  user.isPlaying = false;
+                  updateUser(user);
+                  response.json("you won! attempts: " + attempts);
+
+              } else {
+                  response.json(checkGuessedNumber(guessedNumber));
+                  attempts++;
+              }
+          }
+      }
+  }
 
 
-const getGame: Action = {
-    method: "get",
-    path: "/game",
-    action: (request: Request, response: Response) => {
-        let userId = request.header('user_id')
-        if (userId && !getUserById(userId.toString())) {
-            return response.status(401).send({
-                error: `User ` + getUserById(userId.toString()).username + ` doesn't exists`,
-            });
-        }
-        response.json(getTicTacToe(userId!));
-    }
-}
 
-const getGameUsers: Action = {
-    method: "get",
-    path: "/users/game/:gameId",
-    action: (request: Request, response: Response) => {
-        const gameId = request.params.gameId;
-        response.json(getUserList(gameId));
-    }
-}
-export default [startGame, makeMove, getGame, getGameUsers];
+
+
+
+
+
+
+export default [startGame, guessNumber];
