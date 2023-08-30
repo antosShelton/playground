@@ -1,44 +1,40 @@
-
+// Funkcja generująca tablicę pięciu losowych liczb całkowitych od 1 do 9
 export const generateRandomNumberArray = () => {
     const randomNumberArray = [];
+
     for (let i = 0; i < 5; i++) {
         const randomNumber = Math.floor(Math.random() * 9) + 1;
         randomNumberArray.push(randomNumber);
     }
+
     return randomNumberArray;
 };
 
-
+// Tworzenie tablicy z losowymi liczbami i zmienna przechowująca liczbę prób
 const randomNumberArray = generateRandomNumberArray();
+let triesNumber = 1;
 
-let attempts = 1;
-
-export const checkGuessedNumber = (guessedNumber:string) => {
-    const guessedNumberArray = Array.from(guessedNumber, Number);
-    const answersArray = [];
+// Funkcja sprawdzająca, czy podana liczba zgadza się z wylosowanymi liczbami
+export const checkGuessedNumber = (guessedNumber: string) => {
+    const playersNumberArray = Array.from(guessedNumber, Number);
+    let answersArray: any[];
+    answersArray = [];
     const correctAnswers = ["ok", "ok", "ok", "ok", "ok"];
 
-    for (let i = 0; i < 5; i++) {
-        if (guessedNumberArray[i] === randomNumberArray[i]) {
+    playersNumberArray.forEach((playerNumber, i) => {
+        if (playerNumber === randomNumberArray[i]) {
             answersArray.push("ok");
-        } else if (guessedNumberArray[i] > randomNumberArray[i]) {
+        } else if (playerNumber > randomNumberArray[i]) {
             answersArray.push("za dużo");
-        } else if (guessedNumberArray[i] < randomNumberArray[i]) {
+        } else if (playerNumber < randomNumberArray[i]) {
             answersArray.push("za mało");
         }
-    }
+    });
 
-    for (let i = 0; i < correctAnswers.length; i++) {
-        if (answersArray[i] !== correctAnswers[i]) {
-            attempts++;
-            return answersArray;
-        }
+    if (answersArray.join("") !== correctAnswers.join("")) {
+        triesNumber++;
+        return answersArray;
     }
 
     return true;
 };
-
-
-
-
-
