@@ -1,4 +1,4 @@
-// Funkcja generująca tablicę pięciu losowych liczb całkowitych od 1 do 9
+
 export const generateRandomNumberArray = () => {
     const randomNumberArray = [];
 
@@ -10,11 +10,11 @@ export const generateRandomNumberArray = () => {
     return randomNumberArray;
 };
 
-// Tworzenie tablicy z losowymi liczbami i zmienna przechowująca liczbę prób
+
 const randomNumberArray = generateRandomNumberArray();
 let triesNumber = 1;
 
-// Funkcja sprawdzająca, czy podana liczba zgadza się z wylosowanymi liczbami
+
 export const checkGuessedNumber = (guessedNumber: string) => {
     const playersNumberArray = Array.from(guessedNumber, Number);
     let answersArray: any[];
