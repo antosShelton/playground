@@ -1,40 +1,75 @@
+export class GameService {
+    private games: { [gameId: string]: Game } = {};
 
-export const generateRandomNumberArray = () => {
-    const randomNumberArray = [];
-
-    for (let i = 0; i < 5; i++) {
-        const randomNumber = Math.floor(Math.random() * 9) + 1;
-        randomNumberArray.push(randomNumber);
+    createGame(gameId: string, playerOne: string, playerTwo: string) {
+        this.games[gameId] = new Game(playerOne, playerTwo);
     }
 
-    return randomNumberArray;
-};
+    getGame(gameId: string) {
+        return this.games[gameId];
+    }
+}
 
+class Game {
+    private playerOne: string;
+    private playerTwo: string;
+    private rounds: number = 0;
+    private results: string[] = [];
 
-const randomNumberArray = generateRandomNumberArray();
-let triesNumber = 1;
+    constructor(playerOne: string, playerTwo: string) {
+        this.playerOne = playerOne;
+        this.playerTwo = playerTwo;
+    }
 
+    playRound(choicePlayerOne: string, choicePlayerTwo: string) {
+        // Logika gry: sprawdzenie wyniku rundy i dodanie wyniku do tablicy results
+        // Możesz dostosować tę logikę do własnych zasad gry
+        const result = determineRoundResult(choicePlayerOne, choicePlayerTwo);
+        this.results.push(result);
+        this.rounds++;
 
-export const checkGuessedNumber = (guessedNumber: string) => {
-    const playersNumberArray = Array.from(guessedNumber, Number);
-    let answersArray: any[];
-    answersArray = [];
-    const correctAnswers = ["ok", "ok", "ok", "ok", "ok"];
-
-    playersNumberArray.forEach((playerNumber, i) => {
-        if (playerNumber === randomNumberArray[i]) {
-            answersArray.push("ok");
-        } else if (playerNumber > randomNumberArray[i]) {
-            answersArray.push("za dużo");
-        } else if (playerNumber < randomNumberArray[i]) {
-            answersArray.push("za mało");
+        // Sprawdzenie, czy gra jest zakończona po 4 rundach
+        if (this.rounds >= 4 && !this.isTiebreakRound()) {
+            const gameResult = determineGameResult(this.results);
+            return gameResult;
         }
-    });
 
-    if (answersArray.join("") !== correctAnswers.join("")) {
-        triesNumber++;
-        return answersArray;
+        return null; // Gra nie jest jeszcze zakończona
     }
 
-    return true;
-};
+    private isTiebreakRound() {
+        const tiebreakRound = this.rounds === 4 && this.results.filter((result) => result === 'tie').length === 3;
+        return tiebreakRound;
+    }
+}
+
+function determineRoundResult(choicePlayerOne: string, choicePlayerTwo: string) {
+    // Logika gry: określenie wyniku rundy
+    // Możesz dostosować tę logikę do własnych zasad gry
+    if (choicePlayerOne === choicePlayerTwo) {
+        return 'tie';
+    } else if (
+        (choicePlayerOne === 'rock' && choicePlayerTwo === 'scissors') ||
+        (choicePlayerOne === 'paper' && choicePlayerTwo === 'rock') ||
+        (choicePlayerOne === 'scissors' && choicePlayerTwo === 'paper')
+    ) {
+        return 'playerOne';
+    } else {
+        return 'playerTwo';
+    }
+}
+
+function determineGameResult(results: string[]) {
+
+    const playerOneWins = results.filter((result) => result === 'playerOne').length;
+    const playerTwoWins = results.filter((result) => result === 'playerTwo').length;
+
+    if (playerOneWins > playerTwoWins) {
+        return 'playerOne';
+    } else if (playerTwoWins > playerOneWins) {
+        return 'playerTwo';
+    } else {
+        return 'tie';
+    }
+}
+

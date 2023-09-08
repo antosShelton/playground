@@ -1,8 +1,7 @@
 import {HttpStatusCode} from 'axios';
 import {Request, Response} from 'express';
 import {Action} from '../framework/type';
-import {createUser, getUserById, getUsers, isUsernameAvailable} from '../service/users.service';
-
+import {createUser, deleteUserById, getUserById, getUsers, isUsernameAvailable} from '../service/users.service';
 
 export const isValidUsername = (value: any) => {
     return typeof value === 'string' && value.length >= 5 && value.length < 20;
@@ -67,6 +66,16 @@ const getUserByIdAction: Action = {
     }
 }
 
+const deleteUserByIdAction: Action = {
+    path: '/user/:userId',
+    method: 'delete',
+    action: (request: Request, response: Response) => {
+        const userId = request.params.userId;
+        deleteUserById(userId);
+
+        response.status(HttpStatusCode.Ok).send();
+    },
+}
 
 
-export default [createUserAction, getUsersAction, getUserByIdAction];
+export default [createUserAction, getUsersAction, getUserByIdAction, deleteUserByIdAction];

@@ -1,75 +1,66 @@
-import { Request, Response } from 'express';
-import { Action } from '../framework/type';
-import { getUserById, updateUser } from '../service/users.service';
-import { checkGuessedNumber, generateRandomNumberArray } from "../service/game.service";
+import express, { Request, Response } from 'express';
+import {GameService} from "../service/game.service";
+import {Action} from "../framework/type";
 
+
+
+const gameService = new GameService();
+
+
+
+// Rozpoczęcie nowej gry
 const startGame: Action = {
     method: 'post',
     path: '/game',
     action: (request: Request, response: Response) => {
-        const userId = request.header('user_id');
+    try {
+        const playerOne = request.body.playerOne;
+        const playerTwo = request.body.playerTwo;
+        const gameId = request.body.gameId;
 
-        if (!userId) {
-            return response.json("Missing user ID in headers");
+        if (!playerOne || !playerTwo || !gameId) {
+            response.status(200).json({message:'brakuje playerOne lub playerTwo albo game id'});
         }
 
-        const user = getUserById(userId);
-
-        if (!user) {
-            return response.json("User doesn't exist");
-        }
-
-        if (user.isPlaying) {
-            return response.json("User is already in a game");
-        }
-
-        user.isPlaying = true;
-        updateUser(user);
-        generateRandomNumberArray();
-        response.json("Game has begun");
+        gameService.createGame(gameId, playerOne, playerTwo);
+        response.status(200).json({ message: 'Game has started' });
+    } catch (error) {
+        response.status(400).json({ message: 'error' });
     }
-};
+    }
+}
 
-let attempts = 1;
 
-const guessNumber: Action = {
-    path: '/game/:number',
-    method: 'post',
+
+const GameMove: Action = {
+    method: "patch",
+    path: "/game",
     action: (request: Request, response: Response) => {
-        const userId = request.header("user_id");
+    try {
+        const gameId = request.body.gameId;
+        const choicePlayerOne = request.body.choicePlayerOne;
+        const choicePlayerTwo = request.body.choicePlayerTwo;
 
-        if (!userId) {
-            return response.json("missing user ID in headers");
+        if (!gameId || !choicePlayerOne || !choicePlayerTwo) {
+            response.status(200).json({ message: 'brakuje gameid, choiceplayerone albo choiceplayertwo' });
         }
 
-        const user = getUserById(userId);
+        const game = gameService.getGame(gameId);
 
-        if (!user) {
-            return response.json("user doesn't exist");
+        if (!game) {
+            response.status(200).json({message: 'nie znalezionogry'});
         }
 
-        if (!user.isPlaying) {
-            return response.json("the game has not started yet");
+        const gameResult = game.playRound(choicePlayerOne, choicePlayerTwo);
+
+        if (gameResult) {
+            response.status(200).json({ message: 'Game has ended', result: gameResult });
+        } else {
+            response.status(200).json({ message: 'Round result recorded' });
         }
-
-        const guessedNumber = request.params.number;
-
-        if (attempts >= 20) {
-            user.isPlaying = false;
-            updateUser(user);
-            attempts = 1;
-            return response.json("you lost");
-        }
-
-        if (checkGuessedNumber(guessedNumber)) {
-            user.isPlaying = false;
-            updateUser(user);
-            return response.json(`you won! attempts: ` + attempts);
-        }
-
-        attempts++;
-        response.json("wrong guess");
+    } catch (error) {
+        response.status(400).json({ message: 'error' });
     }
-};
+}}
 
-export default [startGame, guessNumber];
+export default [startGame, GameMove]
