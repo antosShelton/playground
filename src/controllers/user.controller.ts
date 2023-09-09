@@ -1,7 +1,7 @@
 import {HttpStatusCode} from 'axios';
 import {Request, Response} from 'express';
 import {Action} from '../framework/type';
-import {createUser, deleteUserById, getUserById, getUsers, isUsernameAvailable} from '../service/users.service';
+import {createUser, deleteUserById, getUserById, getUsers} from '../service/users.service';
 
 export const isValidUsername = (value: any) => {
     return typeof value === 'string' && value.length >= 5 && value.length < 20;
@@ -25,15 +25,11 @@ const createUserAction: Action = {
             });
         }
 
-        if (!isUsernameAvailable(newUsername)) {
-            return response.status(HttpStatusCode.BadRequest).send({
-                error: `Username '${newUsername}' is already taken`,
-            });
-        }
-
         try {
-            createUser(newUsername);
-            response.status(201).send();
+            const userId = createUser(); // Zapisujemy ID nowo utworzonego użytkownika
+            response.status(HttpStatusCode.Created).send({
+                id: userId, // Wysyłamy ID nowo utworzonego użytkownika jako odpowiedź
+            });
         } catch (error: unknown) {
             if (error instanceof Error) {
                 response.status(HttpStatusCode.InternalServerError).send({

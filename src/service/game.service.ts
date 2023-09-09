@@ -15,6 +15,7 @@ class Game {
     private playerTwo: string;
     private rounds: number = 0;
     private results: string[] = [];
+    private tiebreak: boolean = false;
 
     constructor(playerOne: string, playerTwo: string) {
         this.playerOne = playerOne;
@@ -22,19 +23,23 @@ class Game {
     }
 
     playRound(choicePlayerOne: string, choicePlayerTwo: string) {
-        // Logika gry: sprawdzenie wyniku rundy i dodanie wyniku do tablicy results
-        // Możesz dostosować tę logikę do własnych zasad gry
         const result = determineRoundResult(choicePlayerOne, choicePlayerTwo);
         this.results.push(result);
         this.rounds++;
 
-        // Sprawdzenie, czy gra jest zakończona po 4 rundach
-        if (this.rounds >= 4 && !this.isTiebreakRound()) {
+        if (this.rounds === 4 && !this.isTiebreakRound()) {
             const gameResult = determineGameResult(this.results);
             return gameResult;
+        } else if (this.rounds === 4 && this.isTiebreakRound()) {
+
+            this.tiebreak = true;
         }
 
-        return null; // Gra nie jest jeszcze zakończona
+        if (this.tiebreak) {
+            return null;
+        }
+
+        return null;
     }
 
     private isTiebreakRound() {

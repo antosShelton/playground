@@ -23,7 +23,7 @@ const startGame: Action = {
         }
 
         gameService.createGame(gameId, playerOne, playerTwo);
-        response.status(200).json({ message: 'Game has started' });
+        response.status(200).json({ message: 'gra sie zaczela' });
     } catch (error) {
         response.status(400).json({ message: 'error' });
     }
@@ -54,7 +54,7 @@ const GameMove: Action = {
         const gameResult = game.playRound(choicePlayerOne, choicePlayerTwo);
 
         if (gameResult) {
-            response.status(200).json({ message: 'Game has ended', result: gameResult });
+            response.status(200).json({ message: 'gra sie zakonczyla', result: gameResult });
         } else {
             response.status(200).json({ message: 'Round result recorded' });
         }

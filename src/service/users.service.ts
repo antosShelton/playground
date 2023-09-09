@@ -1,22 +1,28 @@
-import {randomUUID} from 'crypto';
+import { randomUUID } from 'crypto';
 
 export type User = {
     id: string;
     username: string;
     isPlaying: boolean;
 };
-let userStore: Record<string, User> = {}
+let userStore: Record<string, User> = {};
 
+const generateRandomUsername = () => {
+    const randomId = randomUUID();
+    return `User_${randomId.substr(0, 8)}`; // Dla przykładu, User_12345678
+};
 export const isUsernameAvailable = (username: string) => {
     const users = Object.values(userStore);
-    return !users.some((user) => user.username === username);
-}
+    return !users.some((user) => user.username.toLowerCase() === username.toLowerCase());
+};
 
-export const createUser = (username: string) => {
+export const createUser = () => {
     const id = randomUUID();
+    let username = generateRandomUsername();
 
-    if (!isUsernameAvailable(username)) {
-        throw new Error(`Username '${username}' is already taken`);
+    // Sprawdź, czy nazwa jest dostępna
+    while (!isUsernameAvailable(username)) {
+        username = generateRandomUsername();
     }
 
     userStore[id] = {
@@ -24,6 +30,8 @@ export const createUser = (username: string) => {
         username,
         isPlaying: false,
     };
+
+    return userStore; // return new user id
 };
 
 export const getUsers = () => {
@@ -42,5 +50,6 @@ export const deleteUserById = (userId: string) => {
         delete userStore[userId];
     }
 }
+
 
 
